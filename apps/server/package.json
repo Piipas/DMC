@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "expo-build-properties": "~0.12.1",
     "redis": "^4.6.13",
     "socket.io": "^4.7.5",
     "tsx": "^4.10.3"

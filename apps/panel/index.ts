@@ -13,6 +13,7 @@ const rl = readline.createInterface({
 const socket = io("http://localhost:4000");
 
 socket.on("connect", () => {
+  let clientId = null;
   console.log(chalk.green("Connected to server"));
 
   socket.on("list", (data) => {
@@ -22,11 +23,9 @@ socket.on("connect", () => {
   rl.on("line", (input) => {
     const args = input.split(" ");
     console.log(args);
-    if (args[0] === "ls") socket.emit("list");
-    else if (args[0] === "cd" && args.length >= 2)
-      socket.emit("changeDirectory", args[1]);
-    else if (args[0] === "get" && args.length >= 2)
-      socket.emit("download", args[1]);
+    if (args[0] === "ls") socket.emit("ls");
+    else if (args[0] === "cd" && args.length >= 2) socket.emit("cd", args[1]);
+    else if (args[0] === "get" && args.length >= 2) socket.emit("get", args[1]);
     else console.log("Invalid command or Insufficient arguments!");
   });
 });
