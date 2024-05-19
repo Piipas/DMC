@@ -1,28 +1,50 @@
-import { createClient } from "redis";
+import { redisClient, redisConnect } from "./lib/redis";
 import { Server } from "socket.io";
 
-const io = new Server();
-const redisClient = createClient();
+type DataType = {
+  destination?: string;
+  source?: string;
+  data?: string | string[];
+};
 
-const clients: { [key: string]: any } = {};
+const io = new Server();
 
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
-  socket.on("register", (data) => {
-    clients[data.clientId] = socket;
-    console.log(`Client registered: ${data.clientId}`);
+  socket.on("register", async (clientID: string) => {
+    try {
+      await redisClient.set(String(clientID as string), String(socket.id));
+      console.log(`Client registered: ${clientID}`);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  socket.on("devices", async () => {
+    const devices = await redisClient.keys("*");
+    socket.emit("listingDevices", devices);
   });
 
   socket.on("ls", async (data) => {
-    const { to, message } = data;
-    if (clients[to]) clients[to].emit("ls", { message });
+    const { destination } = data;
+    const clientSessionId = await redisClient.get(destination);
+    socket.to(clientSessionId as string).emit("ls", data);
   });
 
-  socket.on("changeDirectory", (data) => io.emit("changeDirectory", data));
+  socket.on("listingDirectory", (data) => {
+    console.log("listing");
+    socket.emit("listingDirectory", data);
+  });
 
-  socket.on("download", (data) => io.emit("download", data));
+  socket.on("cd", (data) => io.emit("changeDirectory", data));
+
+  socket.on("get", (data) => io.emit("download", data));
+
+  socket.on("downloadingFiles", (data) => {
+    socket.emit("donloadingFiles", data);
+  });
 });
 
 io.listen(4000, { cors: { origin: "*" } });
-redisClient.connect();
+redisConnect();
