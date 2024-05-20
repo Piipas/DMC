@@ -34,7 +34,7 @@ io.on("connection", (socket) => {
 
   socket.on("listingDirectory", (data) => {
     console.log("listing");
-    socket.emit("listingDirectory", data);
+    io.emit("listingDirectory", data);
   });
 
   socket.on("cd", (data) => io.emit("changeDirectory", data));

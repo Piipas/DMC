@@ -5,56 +5,59 @@ import io from "socket.io-client";
 const commandRegex = new RegExp(/^[A-z0-9]{1,255}$/g);
 let devices: string[] = [];
 
+type DataType = {
+  destination?: string;
+  source?: string;
+  data?: string | string[];
+};
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
   terminal: true,
+  prompt: "/>",
 });
 
 const socket = io("http://localhost:4000");
 
 socket.on("connect", () => {
   console.log(chalk.green("Connected to server"));
-
   socket.emit("devices");
+});
 
-  socket.on("listingDirectory", (data) => {
-    console.log("wsslatni", data);
-    process.exit(1);
-  });
+socket.on("listingDevices", (devicesIDs: string[]) => {
+  devices = devicesIDs;
+  console.log("- devices:");
+  devicesIDs.map((device, i) => console.log(`${chalk.red(i + 1)}. ${device}`));
 
-  socket.on("listingDevices", (devicesIDs: string[]) => {
-    devices = devicesIDs;
-    console.log("- devices:");
-    devicesIDs.map((device, i) =>
-      console.log(`${chalk.red(i + 1)}. ${device}`)
-    );
+  rl.question("\nchoose a device to control: ", (deviceOrder) => {
+    const deviceID = devices[Number(deviceOrder) - 1];
 
-    rl.question("\nchoose a device to control: ", (deviceOrder) => {
-      const deviceID = devices[Number(deviceOrder) - 1];
+    console.log(`Connected to the device with id: ${chalk.green(deviceID)}\n`);
 
-      console.log(
-        `Connected to the device with id: ${chalk.green(deviceID)}\n`
-      );
+    socket.on("listingDirectory", ({ data }: { data: string[] }) => {
+      data.unshift("\n..");
+      data?.map((file) => console.log(file.split("%3A").at(-1)));
+      rl.prompt();
+    });
 
-      rl.on("line", (input) => {
-        const args = input.split(" ");
-        const command = args[0];
+    rl.on("line", (input) => {
+      const args = input.split(" ");
+      const command = args[0];
 
-        switch (command) {
-          case "ls":
-            socket.emit("ls", { destination: deviceID });
-            break;
-          case "cd":
-            socket.emit("cd", { destination: deviceID, data: args[1] });
-            break;
-          case "get":
-            socket.emit("get", { destination: deviceID, data: args[1] });
-            break;
-          default:
-            console.log("Invalid command or Insufficient arguments!");
-        }
-      });
+      switch (command) {
+        case "ls":
+          socket.emit("ls", { destination: deviceID });
+          break;
+        case "cd":
+          socket.emit("cd", { destination: deviceID, data: args[1] });
+          break;
+        case "get":
+          socket.emit("get", { destination: deviceID, data: args[1] });
+          break;
+        default:
+          console.log("Invalid command or Insufficient arguments!");
+      }
     });
   });
 });
