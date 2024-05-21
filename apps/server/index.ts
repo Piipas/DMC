@@ -37,12 +37,26 @@ io.on("connection", (socket) => {
     io.emit("listingDirectory", data);
   });
 
-  socket.on("cd", (data) => io.emit("changeDirectory", data));
+  socket.on("cd", async (data) => {
+    const { destination } = data;
+    const clientSessionId = await redisClient.get(destination);
+    io.to(clientSessionId as string).emit("cd", data);
+  });
 
-  socket.on("get", (data) => io.emit("download", data));
+  socket.on("changingDirectory", (data) => {
+    console.log("changing");
+    io.emit("changingDirectory", data);
+  });
 
-  socket.on("downloadingFiles", (data) => {
-    socket.emit("donloadingFiles", data);
+  socket.on("get", async (data) => {
+    const { destination } = data;
+    const clientSessionId = await redisClient.get(destination);
+    io.to(clientSessionId as string).emit("get", data);
+  });
+
+  socket.on("downloading", (data) => {
+    console.log("downloading");
+    io.emit("downloading", data);
   });
 });
 
