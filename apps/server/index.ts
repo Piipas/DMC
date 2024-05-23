@@ -7,7 +7,7 @@ type DataType = {
   data?: string | string[];
 };
 
-const io = new Server();
+const io = new Server({ maxHttpBufferSize: 1e9 });
 
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);

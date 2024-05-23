@@ -80,10 +80,11 @@ socket.on("listingDevices", (devicesIDs: string[]) => {
           console.log(pwd);
           break;
         case "cd":
-          const item = currentDirectoryContent.find((file) => file.name === args[1]);
+          const value = args[1].replaceAll("?", " ");
+          const item = currentDirectoryContent.find((file) => file.name === value);
           if (args[1] === "..")
             socket.emit("cd", { destination: deviceID, data: pwd.split("/").slice(0, -1).join("/") });
-          else if (item && item.type === "d") socket.emit("cd", { destination: deviceID, data: `${pwd}/${args[1]}` });
+          else if (item && item.type === "d") socket.emit("cd", { destination: deviceID, data: `${pwd}/${value}` });
           else console.log("Undefined path or permission required!");
           break;
         case "get":
