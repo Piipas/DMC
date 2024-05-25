@@ -1,5 +1,7 @@
 import { redisClient, redisConnect } from "./lib/redis";
 import { Server } from "socket.io";
+import ngrok from "@ngrok/ngrok";
+import { ngrokClient } from "./lib/ngrok";
 
 type DataType = {
   destination?: string;
@@ -62,3 +64,4 @@ io.on("connection", (socket) => {
 
 io.listen(4000, { cors: { origin: "*" } });
 redisConnect();
+ngrokClient();

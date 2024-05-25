@@ -26,7 +26,7 @@ const rl = readline.createInterface({
   prompt: "/>",
 });
 
-const socket = io("http://localhost:4000");
+const socket = io("https://b07d-41-143-216-239.ngrok-free.app");
 
 socket.on("connect", () => {
   console.log(chalk.green("Connected to server"));
